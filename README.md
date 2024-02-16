@@ -3,14 +3,13 @@
 - create repo & clone
 - crate venv & activate
 - structure update
+- EDA & model train 
 - logging,exception & utils update 
 - components
-----Data ingestion ..... Model Evaluation 
+----Data ingestion ..>>>><<<<... Model Evaluation 
 - pipeline
 -----training & predict pipeline
 - mlflow
-- dvc 
-- aws deploy code 
 - app.py Done 
 
 # ALL COMPLETE WITH BIMAL-TS
