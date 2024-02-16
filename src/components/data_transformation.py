@@ -12,11 +12,12 @@ from log.looger import logging
 from excep.exception import customexception
 from utils.common import save_object
 
-
 from dataclasses import dataclass
+from pathlib import Path
+
 @dataclass
 class DataTransformationConfig:
-    preprocessor_obj_file_path = os.path.join(os.path.dirname(__file__), 'artifacts', 'preprocessor.pkl')
+    preprocessor_obj_file_path: Path = Path(os.path.dirname(__file__)) / 'artifacts' / 'preprocessor.pkl'
 
 class DataTransformation:
     def __init__(self):
@@ -26,18 +27,18 @@ class DataTransformation:
         try:
             logging.info("Data Preprocessing has started...")
 
-            #define the columns 
+            # Define the columns 
             categorical_cols = ['cut', 'color', 'clarity']
             numerical_cols = ['carat', 'depth', 'table', 'x', 'y', 'z']
 
-            #define the custom ranking for each ordinal variable
-            cut_categories = ['Fair', 'Good', 'Very Good','Premium','Ideal']
+            # Define the custom ranking for each ordinal variable
+            cut_categories = ['Fair', 'Good', 'Very Good', 'Premium', 'Ideal']
             color_categories = ['D', 'E', 'F', 'G', 'H', 'I', 'J']
-            clarity_categories = ['I1','SI2','SI1','VS2','VS1','VVS2','VVS1','IF']
+            clarity_categories = ['I1', 'SI2', 'SI1', 'VS2', 'VS1', 'VVS2', 'VVS1', 'IF']
 
             logging.info("Pipeline Initiated...")
 
-            #numerical pipeline
+            # Numerical pipeline
             num_pipeline = Pipeline(
                 steps=[
                     ('imputer', SimpleImputer(strategy='median')),
@@ -45,26 +46,26 @@ class DataTransformation:
                 ]
             )
 
-            #categorical pipeline
+            # Categorical pipeline
             cat_pipeline = Pipeline(
                 steps=[
-                    ('imputer',SimpleImputer(strategy='most_frequent')),
-                    ('ordinalencoder',OrdinalEncoder(categories=[cut_categories,color_categories,clarity_categories])),
-                    ('scaler',StandardScaler())
+                    ('imputer', SimpleImputer(strategy='most_frequent')),
+                    ('ordinalencoder', OrdinalEncoder(categories=[cut_categories, color_categories, clarity_categories])),
+                    ('scaler', StandardScaler())
                 ]
             )
 
-            preprocessor =ColumnTransformer([
-                ('num_pipeline',num_pipeline,numerical_cols),
-                ('cat_pipeline',cat_pipeline,categorical_cols)
+            preprocessor = ColumnTransformer([
+                ('num_pipeline', num_pipeline, numerical_cols),
+                ('cat_pipeline', cat_pipeline, categorical_cols)
             ])
             
             logging.info("Pipeline Completed.")
             logging.info("Data Preprocessing is completed.")
             return preprocessor
         except Exception as e:
-            logging.info("Exception occured while performing Data Preprocessing.")
-            raise CustomException(e, sys)
+            logging.info("Exception occurred while performing Data Preprocessing.")
+            raise customexception(e, sys)
 
     def init_data_transformation(self, train_path, test_path):
         try:
@@ -83,33 +84,34 @@ class DataTransformation:
             target_column_name = "price"
             drop_columns = [target_column_name, "id"]
 
-            input_feature_train_df = train_df.drop(columns=drop_columns,axis=1)
-            target_feature_train_df=train_df[target_column_name]
+            input_feature_train_df = train_df.drop(columns=drop_columns, axis=1)
+            target_feature_train_df = train_df[target_column_name]
 
-            input_feature_test_df=test_df.drop(columns=drop_columns,axis=1)
-            target_feature_test_df=test_df[target_column_name]
+            input_feature_test_df = test_df.drop(columns=drop_columns, axis=1)
+            target_feature_test_df = test_df[target_column_name]
 
-             #Transforming data using preprocessor 
+             # Transforming data using preprocessor 
             logging.info("Applying preprocessing on training and testing datasets.")            
-            input_feature_train_arr=preprocessor.fit_transform(input_feature_train_df)
-            input_feature_test_arr=preprocessor.transform(input_feature_test_df)
+            input_feature_train_arr = preprocessor.fit_transform(input_feature_train_df)
+            input_feature_test_arr = preprocessor.transform(input_feature_test_df)
 
-            #saving preproceesed data into numpy array for future use
+            # Saving preprocessed data into numpy array for future use
             train_arr = np.c_[input_feature_train_arr, np.array(target_feature_train_df)]
             test_arr = np.c_[input_feature_test_arr, np.array(target_feature_test_df)]
 
-            #Save the pickel file
-            save_object(
+            # Save the pickle file
+            save_object(file_path=self.data_transformation_config.preprocessor_obj_file_path, obj=preprocessor)
 
-                file_path=self.data_transformation_config.preprocessor_obj_file_path,
-                obj=preprocessor
-
-            )        
             return (
                 train_arr,
                 test_arr,
                 self.data_transformation_config.preprocessor_obj_file_path,
             )
         except Exception as e:
-            logging.info("Exception occur at Data Tranformation stage")
-            raise CustomException(e,sys)
+            logging.info("Exception occurred while performing Data Preprocessing.")
+            raise customexception(e, sys)
+
+
+
+
+
